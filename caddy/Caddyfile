@@ -1,3 +1,8 @@
+{
+    # acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+    admin off
+}
+
 
 (common) {
     header /* {
@@ -6,6 +11,9 @@
         X-Content-Type-Options "nosniff"
         X-Frame-Options "SAMEORIGIN"
         Referrer-Policy "strict-origin-when-cross-origin"
+        Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"
+        Pragma "no-cache"
+        Expires "0"
     }
     encode gzip zstd
 }
@@ -30,7 +38,7 @@ example.com {
     }
 
     log {
-        output file /var/log/caddy/not-for-production-server.kusbot.com.log {
+        output file /var/log/caddy/example.com.log {
             roll_size 100MiB
             roll_keep 10
         }
@@ -38,19 +46,32 @@ example.com {
         level INFO
     }
 
-    root * /my_volume/video-storage/front-end
+    root * /usr/share/caddy
 
-    route /api/* {
-        reverse_proxy {
-            to app:8000
-            header_up Host {host}
-            header_up X-Real-IP {remote}
-            header_up X-Forwarded-For {remote}
-            header_up X-Forwarded-Proto {scheme}
-        }
+    # Додатковий хедер для статичних файлів
+    header /* {
+        Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"
+        Pragma "no-cache"
+        Expires "0"
     }
 
     file_server {
         index index.html
+    }
+
+    route /api/* {
+        uri strip_prefix /api
+        reverse_proxy server:8000 {
+            header_up Cache-Control "no-store, no-cache, must-revalidate"
+            header_up Pragma "no-cache"
+        }
+    }
+
+    route /blob-bridge/* {
+        uri strip_prefix /blob-bridge
+        reverse_proxy blob-bridge:3001 {
+            header_up Cache-Control "no-store, no-cache, must-revalidate"
+            header_up Pragma "no-cache"
+        }
     }
 }

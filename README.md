@@ -18,9 +18,6 @@ This system allows users to upload videos of any size, which are then stored in 
 ### Prerequisites
 
 - Docker and Docker Compose
-- Python 3.12+
-- Node.js 18+
-- Make
 
 ### Installation
 
@@ -31,30 +28,25 @@ git clone https://github.com/yourusername/video-storage.git
 cd video-storage
 ```
 
-2. **Install dependencies**
-
-```bash
-# Create virtual environment using UV
-uv venv --python=3.12
-
-# Activate virtual environment
-source .venv/bin/activate
-
-# Install dependencies
-make sync
-```
-
-3. **Create .env file**
+2. **Create .env file**
 
 ```bash
 cp .env.example .env
 ```
 Edit the `.env` file with your Vercel Blob credentials and other configuration.
 
-4. **Run the application**
+3. **Run the application**
 
 ```bash
-make up
+docker compose up -d
+```
+
+4. **Run database migrations**
+
+After starting the containers, you need to run the database migrations:
+
+```bash
+docker compose exec server python -m alembic upgrade head
 ```
 
 ## Environment Variables
@@ -62,9 +54,10 @@ make up
 The following environment variables should be configured in your `.env` file:
 
 ```
+# Vercel Blob Storage
 BLOB_READ_WRITE_TOKEN=your_vercel_blob_token
-
 BLOB_STORE_ID=store_your_store_id  # Store ID, can be found in your blob storage URL
+
 
 ```
 
@@ -74,28 +67,18 @@ Migration files are located in the `app/migrations` directory.
 
 This application uses Alembic for database migrations, with a preference for manual migration management rather than automatic migrations.
 
-### Creating Initial Migration
+### Running Migrations
 
-Ensure your models are imported in `app/bot/storages/psql/__init__.py` and run:
-
-```bash
-make create-init-revision
-```
-
-This creates an initial migration file in `app/migrations/versions` and an empty `alembic_version` table in the database.
-
-### Applying Migrations
+To apply all migrations:
 
 ```bash
-make upgrade-revision revision=<revision_id>
+docker compose exec server python -m alembic upgrade head
 ```
-
-Where `revision_id` is the ID of the migration in the `app/migrations/versions` directory. Initial migration ID is `000000000000`.
 
 ### Checking Current Migration
 
 ```bash
-make current-revision
+docker compose exec server python -m alembic current
 ```
 
 ## Project Structure
@@ -146,6 +129,16 @@ To run the application with Caddy:
 
 1. Change the domain in the Caddyfile to your own domain
 2. Uncomment the Caddy service code in the docker-compose.yml file
+3. In the `front-end/script.js` file, update the API URLs for server deployment:
+   ```javascript
+   // Change these lines:
+   const API_BASE_URL = 'http://localhost:8000';
+   const BLOB_BRIDGE_URL = 'http://localhost:3001';
+   
+   // To relative paths for Caddy proxy:
+   const API_BASE_URL = '/api';
+   const BLOB_BRIDGE_URL = '/blob-bridge';
+   ```
 
 ### Logging
 
