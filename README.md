@@ -38,13 +38,12 @@ Edit the `.env` file with your Vercel Blob credentials and other configuration.
 3. **Run the application**
 
 ```bash
-docker compose up -d
+docker compose up -d --build
 ```
 
 4. **Run database migrations**
 
-After starting the containers, you need to run the database migrations:
-
+After containers run, you should do migrations
 ```bash
 docker compose exec server python -m alembic upgrade head
 ```
