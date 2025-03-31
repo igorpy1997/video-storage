@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Gallery</title>
+    <link type="image/png" sizes="16x16" rel="icon" href="../icons8-video-16.png">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container py-5">
+        <header class="text-center mb-5">
+            <h1 class="fw-bold">Video Gallery</h1>
+            <p class="text-muted">Upload, process, and view your videos</p>
+        </header>
+
+        <!-- Upload Section -->
+        <section class="mb-5">
+            <h2 class="mb-4">Upload New Video</h2>
+            <div class="upload-container" id="uploadDropzone">
+                <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
+                <h4>Drag & Drop Video Files Here</h4>
+                <p class="text-muted">or</p>
+                <form id="uploadForm">
+                    <div class="mb-3">
+                        <input type="text" class="form-control" id="videoTitle" placeholder="Enter video title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="videoFile" class="btn btn-primary">Select Video File</label>
+                        <input type="file" id="videoFile" accept="video/*" class="d-none">
+                        <p class="selected-file-name mt-2 text-muted" id="selectedFileName">No file selected</p>
+                    </div>
+                    <button type="submit" class="btn btn-success" id="uploadButton">
+                        <i class="fas fa-upload me-2"></i>Upload Video
+                    </button>
+                </form>
+
+                <div id="uploadProgressContainer" style="display: none;">
+                    <div class="progress mb-3">
+                        <div id="uploadProgressBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                    </div>
+                    <p id="uploadStatus">Preparing upload...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Filter and Sort Options -->
+        <section class="mb-4">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h2>Video Gallery</h2>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <div class="d-flex justify-content-md-end">
+                        <select class="form-select me-2" style="width: auto;" id="statusFilter">
+                            <option value="">All Status</option>
+                            <option value="ready">Ready</option>
+                            <option value="processing">Processing</option>
+                            <option value="error">Error</option>
+                        </select>
+                        <button class="btn btn-outline-secondary" id="refreshGallery">
+                            <i class="fas fa-sync-alt me-2"></i>Refresh
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Featured Video Player -->
+        <section class="mb-5 video-player-section" id="featuredVideoSection">
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="video-player-container">
+                        <video id="featuredVideoPlayer" controls class="w-100" poster="/api/placeholder/800/450"></video>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="video-details p-3 h-100 d-flex flex-column">
+                        <h3 id="featuredVideoTitle">Select a video to play</h3>
+                        <p class="text-muted" id="featuredVideoInfo">Choose a video from the carousel below</p>
+                        <div class="mt-auto">
+                            <div id="featuredVideoMetadata" class="d-none">
+                                <hr>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="video-stats">
+                                        <div class="mb-2"><i class="far fa-clock me-2"></i><span id="featuredVideoDuration">--:--</span></div>
+                                        <div><i class="far fa-calendar-alt me-2"></i><span id="featuredVideoDate">--/--/----</span></div>
+                                    </div>
+                                    <button id="deleteVideoBtn" class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-trash me-1"></i>Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Video Carousel -->
+        <section>
+            <h3 class="mb-3">Browse Videos</h3>
+
+            <!-- Skeleton Loading for Carousel -->
+            <div id="carouselSkeleton" class="carousel-skeleton">
+                <div class="row">
+                    <div class="col-md-3 col-sm-6 mb-4">
+                        <div class="thumbnail-container skeleton-loading"></div>
+                        <div class="skeleton-loading mt-2" style="height: 20px;"></div>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-4">
+                        <div class="thumbnail-container skeleton-loading"></div>
+                        <div class="skeleton-loading mt-2" style="height: 20px;"></div>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-4">
+                        <div class="thumbnail-container skeleton-loading"></div>
+                        <div class="skeleton-loading mt-2" style="height: 20px;"></div>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-4">
+                        <div class="thumbnail-container skeleton-loading"></div>
+                        <div class="skeleton-loading mt-2" style="height: 20px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Custom Carousel Container -->
+            <div class="custom-carousel-container">
+                <!-- Carousel Left Button -->
+                <button id="carouselPrevBtn" class="carousel-nav-btn carousel-prev-btn">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+
+                <div id="videoCarousel" class="video-carousel">
+                </div>
+
+                <button id="carouselNextBtn" class="carousel-nav-btn carousel-next-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mt-4 mb-5">
+                <div>
+                    <span id="totalVideosCount">Loading videos...</span>
+                </div>
+                <nav>
+                    <ul class="pagination" id="pagination">
+                    </ul>
+                </nav>
+            </div>
+        </section>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+
+<script src="script.js"></script>
+
+</body>
+</html>
