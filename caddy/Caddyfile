@@ -17,7 +17,7 @@
     }
 }
 
-not-for-production-server.kusbot.com {
+example.com {
     import common
     import error
 
