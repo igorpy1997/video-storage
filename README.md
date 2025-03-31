@@ -57,6 +57,17 @@ Edit the `.env` file with your Vercel Blob credentials and other configuration.
 make up
 ```
 
+## Environment Variables
+
+The following environment variables should be configured in your `.env` file:
+
+```
+BLOB_READ_WRITE_TOKEN=your_vercel_blob_token
+
+BLOB_STORE_ID=store_your_store_id  # Store ID, can be found in your blob storage URL
+
+```
+
 ## Database Migrations
 
 Migration files are located in the `app/migrations` directory.
@@ -101,6 +112,15 @@ video-storage/
 ├── blob-bridge/           # Node.js bridge for Vercel Blob
 │   ├── vercel-blob-bridge.js  # Bridge implementation
 │   └── package.json       # Node.js dependencies
+├── caddy/                 # Caddy web server
+│   ├── config/            # Caddy configuration
+│   ├── data/              # Caddy data
+│   ├── public/            # Public assets
+│   └── Caddyfile          # Main Caddy configuration file
+├── front-end/             # Frontend web application
+│   ├── index.html         # Main HTML file
+│   ├── script.js          # JavaScript code
+│   └── style.css          # CSS styles
 ├── docker/                # Docker configuration
 ├── psql/                  # PostgreSQL initialization scripts
 ├── .env.example           # Example environment variables
@@ -116,3 +136,23 @@ video-storage/
 - Scalable architecture suitable for production use
 - Efficient handling of storage and database resources
 
+## Web Server Configuration
+
+The application uses Caddy as a web server and reverse proxy. The main configuration file is located at `caddy/Caddyfile`.
+
+### Setting Up Caddy
+
+To run the application with Caddy:
+
+1. Change the domain in the Caddyfile to your own domain
+2. Uncomment the Caddy service code in the docker-compose.yml file
+
+### Logging
+
+Log configuration is defined in the Caddy server configuration. Logs are stored in the `/var/log/caddy/` directory by default.
+
+## API Documentation
+
+When running the application, API documentation is available at:
+- Swagger UI: `http://localhost:8000/docs`
+- ReDoc: `http://localhost:8000/redoc`

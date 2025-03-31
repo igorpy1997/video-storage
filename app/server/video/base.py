@@ -14,7 +14,7 @@ from typing import Any
 from server.dependencies import get_settings
 from server.storages import Video, VideoProcessingJob
 from server.storages.pydantic_models import VideoCreate
-from server.vercel_bob.base_disable import VercelBlobService
+from server.vercel_bob.base import VercelBlobService
 
 settings = get_settings()
 

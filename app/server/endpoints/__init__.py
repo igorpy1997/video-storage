@@ -1,4 +1,4 @@
-from .base_disable import router
+from .base import router
 
 
 __all__ = ["router"]

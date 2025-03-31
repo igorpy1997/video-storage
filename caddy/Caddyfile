@@ -1,0 +1,56 @@
+
+(common) {
+    header /* {
+        -Server
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "SAMEORIGIN"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+    encode gzip zstd
+}
+
+(error) {
+    handle_errors {
+        header -Server
+        respond 404
+    }
+}
+
+not-for-production-server.kusbot.com {
+    import common
+    import error
+
+    log {
+        output stderr
+        format filter {
+            wrap console
+        }
+        level INFO
+    }
+
+    log {
+        output file /var/log/caddy/not-for-production-server.kusbot.com.log {
+            roll_size 100MiB
+            roll_keep 10
+        }
+        format json
+        level INFO
+    }
+
+    root * /my_volume/video-storage/front-end
+
+    route /api/* {
+        reverse_proxy {
+            to app:8000
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+
+    file_server {
+        index index.html
+    }
+}

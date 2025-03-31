@@ -17,19 +17,7 @@ pull:
 	git pull origin master
 	git submodule update --init --recursive
 
-.PHONY extract-locales:
-extract-locales:
-	uv run ftl_extract \
-	'.\app\bot' \
-	'.\app\bot\locales' \
-	-l 'en' \
-	-l 'uk' \
-	-k 'i18n' \
-	-k 'L' \
-	-k 'LF' \
-	-k 'LazyProxy' \
-	-a 'core' \
-	--comment-junks
+
 
 .PHONY lint:
 lint:

@@ -1,6 +1,5 @@
 FROM python:3.12.9-slim AS builder
 
-# Встановлюємо FFmpeg та інші необхідні системні залежності
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     ffmpeg \

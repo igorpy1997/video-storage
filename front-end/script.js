@@ -24,7 +24,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initDomElements() {
-    // Upload section
     uploadForm = document.getElementById('uploadForm');
     uploadButton = document.getElementById('uploadButton');
     videoFileInput = document.getElementById('videoFile');
@@ -34,7 +33,6 @@ function initDomElements() {
     uploadProgressBar = document.getElementById('uploadProgressBar');
     uploadStatus = document.getElementById('uploadStatus');
 
-    // Gallery section
     videoCarousel = document.getElementById('videoCarousel');
     carouselSkeleton = document.getElementById('carouselSkeleton');
     statusFilter = document.getElementById('statusFilter');
@@ -42,7 +40,6 @@ function initDomElements() {
     pagination = document.getElementById('pagination');
     totalVideosCount = document.getElementById('totalVideosCount');
 
-    // Featured video section
     deleteVideoBtn = document.getElementById('deleteVideoBtn');
     featuredVideoPlayer = document.getElementById('featuredVideoPlayer');
     featuredVideoTitle = document.getElementById('featuredVideoTitle');
@@ -51,31 +48,25 @@ function initDomElements() {
     featuredVideoDuration = document.getElementById('featuredVideoDuration');
     featuredVideoDate = document.getElementById('featuredVideoDate');
 
-    // Carousel navigation
     carouselPrevBtn = document.getElementById('carouselPrevBtn');
     carouselNextBtn = document.getElementById('carouselNextBtn');
 
     console.log('DOM elements initialized');
 }
 
-// Setup all event listeners
 function setupEventListeners() {
-    // File selection
     if (videoFileInput) {
         videoFileInput.addEventListener('change', handleFileSelection);
     }
 
-    // Form submission
     if (uploadForm) {
         uploadForm.addEventListener('submit', handleUpload);
     }
 
-    // Drag and drop
     if (uploadDropzone) {
         setupDragAndDrop();
     }
 
-    // Status filter
     if (statusFilter) {
         statusFilter.addEventListener('change', () => {
             currentPage = 0;
@@ -83,12 +74,10 @@ function setupEventListeners() {
         });
     }
 
-    // Refresh button
     if (refreshGallery) {
         refreshGallery.addEventListener('click', loadVideos);
     }
 
-    // Delete button
     if (deleteVideoBtn) {
         deleteVideoBtn.addEventListener('click', () => {
             if (currentVideoId) {
@@ -97,13 +86,11 @@ function setupEventListeners() {
         });
     }
 
-    // Carousel navigation
     setupCarouselNavigation();
 
     console.log('Event listeners set up');
 }
 
-// Set up carousel navigation
 function setupCarouselNavigation() {
     if (carouselPrevBtn) {
         carouselPrevBtn.addEventListener('click', () => {
@@ -117,7 +104,6 @@ function setupCarouselNavigation() {
         });
     }
 
-    // Keyboard navigation
     document.addEventListener('keydown', (e) => {
         if (e.key === 'ArrowLeft') {
             scrollCarousel(-1);
@@ -127,7 +113,6 @@ function setupCarouselNavigation() {
     });
 }
 
-// Handle file selection
 function handleFileSelection(e) {
     const file = e.target.files[0];
     if (file && selectedFileName) {
@@ -137,7 +122,6 @@ function handleFileSelection(e) {
     }
 }
 
-// Setup drag and drop functionality
 function setupDragAndDrop() {
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
         uploadDropzone.addEventListener(eventName, preventDefaults, false);
@@ -175,7 +159,6 @@ function setupDragAndDrop() {
     }
 }
 
-// Handle video upload
 async function handleUpload(e) {
     e.preventDefault();
 
@@ -192,22 +175,18 @@ async function handleUpload(e) {
         return;
     }
 
-    // Create FormData
     const formData = new FormData();
     formData.append('title', title);
     formData.append('file', file);
 
-    // Show progress UI
     uploadButton.disabled = true;
     uploadProgressContainer.style.display = 'block';
     uploadProgressBar.style.width = '0%';
     uploadStatus.textContent = 'Uploading...';
 
     try {
-        // Upload the video with XHR to track progress
         const xhr = new XMLHttpRequest();
 
-        // Track upload progress
         xhr.upload.addEventListener('progress', function(e) {
             if (e.lengthComputable) {
                 const percentComplete = (e.loaded / e.total) * 100;
@@ -215,7 +194,6 @@ async function handleUpload(e) {
             }
         });
 
-        // Handle response
         const uploadPromise = new Promise((resolve, reject) => {
             xhr.onload = function() {
                 if (xhr.status >= 200 && xhr.status < 300) {
@@ -235,13 +213,11 @@ async function handleUpload(e) {
             };
         });
 
-        // Змінюємо URL для завантаження на URL мосту
         xhr.open('POST', `${BLOB_BRIDGE_URL}/upload`, true);
 
 
         xhr.send(formData);
 
-        // Wait for upload to complete
         const data = await uploadPromise;
 
         uploadProgressBar.style.width = '100%';
@@ -249,7 +225,6 @@ async function handleUpload(e) {
 
 
 
-        // Reset the form and refresh the gallery
         setTimeout(() => {
             uploadForm.reset();
             selectedFileName.textContent = 'No file selected';
@@ -257,7 +232,6 @@ async function handleUpload(e) {
             uploadProgressContainer.style.display = 'none';
             loadVideos();
 
-            // Start polling for processing status
         }, 2000);
 
     } catch (error) {
@@ -265,7 +239,6 @@ async function handleUpload(e) {
         uploadStatus.textContent = `Error: ${error.message}`;
         uploadProgressBar.classList.add('bg-danger');
 
-        // Reset after error
         setTimeout(() => {
             uploadButton.disabled = false;
             uploadProgressBar.classList.remove('bg-danger');
@@ -273,7 +246,6 @@ async function handleUpload(e) {
     }
 }
 
-// Poll for video processing status
 async function pollProcessingStatus(videoId) {
     let attempts = 0;
     const maxAttempts = 30; // ~5 minutes with 10s interval
@@ -298,7 +270,6 @@ async function pollProcessingStatus(videoId) {
                 return;
             }
 
-            // Continue polling if still processing
             attempts++;
             if (attempts < maxAttempts) {
                 setTimeout(checkStatus, interval);
@@ -308,13 +279,10 @@ async function pollProcessingStatus(videoId) {
         }
     };
 
-    // Start polling
     setTimeout(checkStatus, interval);
 }
 
-// Load videos from API
 async function loadVideos() {
-    // Show skeleton loading
     if (carouselSkeleton) {
         carouselSkeleton.style.display = 'block';
     }
@@ -343,17 +311,14 @@ async function loadVideos() {
 
         console.log('Fetched videos:', videoData.length);
 
-        // Update UI with videos
         renderVideoGrid(videoData);
         updatePagination(data.total || 0);
         updateTotalCount(data.total || 0);
 
-        // If we have videos and none is selected yet, select the first one
         if (videoData.length > 0 && !currentVideoId && featuredVideoPlayer) {
             playVideo(videoData[0].id);
         }
 
-        // Update carousel navigation buttons state
         updateNavButtonsState();
 
     } catch (error) {
@@ -371,14 +336,12 @@ async function loadVideos() {
             videoCarousel.style.display = 'block';
         }
     } finally {
-        // Hide skeleton
         if (carouselSkeleton) {
             carouselSkeleton.style.display = 'none';
         }
     }
 }
 
-// Render video grid
 function renderVideoGrid(videos) {
     if (!videoCarousel) {
         console.error('Video carousel element not found');
@@ -397,25 +360,21 @@ function renderVideoGrid(videos) {
         `;
         videoCarousel.style.display = 'block';
 
-        // Disable navigation buttons
         if (carouselPrevBtn) carouselPrevBtn.disabled = true;
         if (carouselNextBtn) carouselNextBtn.disabled = true;
 
         return;
     }
 
-    // Create video grid HTML
     const gridHTML = `
         <div class="video-grid">
             ${videos.map(video => createVideoCardHTML(video)).join('')}
         </div>
     `;
 
-    // Update DOM
     videoCarousel.innerHTML = gridHTML;
     videoCarousel.style.display = 'block';
 
-    // Add click events to all video cards
     document.querySelectorAll('.video-card').forEach(card => {
         card.addEventListener('click', () => {
             const videoId = card.dataset.videoId;
@@ -423,25 +382,20 @@ function renderVideoGrid(videos) {
         });
     });
 
-    // Enable navigation buttons if we have videos
     if (carouselPrevBtn) carouselPrevBtn.disabled = false;
     if (carouselNextBtn) carouselNextBtn.disabled = false;
 }
 
-// Create HTML for a video card
 function createVideoCardHTML(video) {
-    // Use placeholder for thumbnails
     let thumbnailSrc = video.thumbnail_path || '/api/placeholder/300/180';
     let statusBadge = '';
 
-    // Add status badges
     if (video.status === 'processing') {
         statusBadge = '<span class="status-badge badge bg-warning">Processing</span>';
     } else if (video.status === 'error') {
         statusBadge = '<span class="status-badge badge bg-danger">Error</span>';
     }
 
-    // Format duration
     const duration = formatDuration(video.duration || 0);
 
     return `
@@ -459,39 +413,31 @@ function createVideoCardHTML(video) {
     `;
 }
 
-// Scroll the carousel
 function scrollCarousel(direction) {
     if (!videoCarousel) return;
 
     const scrollAmount = direction * 500; // Adjust scroll amount as needed
     videoCarousel.scrollLeft += scrollAmount;
 
-    // Update navigation buttons after scrolling
     setTimeout(updateNavButtonsState, 300);
 }
 
-// Update navigation buttons state
 function updateNavButtonsState() {
     if (!videoCarousel || !carouselPrevBtn || !carouselNextBtn) return;
 
-    // Check if we can scroll left
     const canScrollLeft = videoCarousel.scrollLeft > 0;
 
-    // Check if we can scroll right
     const canScrollRight =
         videoCarousel.scrollLeft <
         (videoCarousel.scrollWidth - videoCarousel.clientWidth - 10);
 
-    // Update buttons state
     carouselPrevBtn.disabled = !canScrollLeft;
     carouselNextBtn.disabled = !canScrollRight;
 }
 
-// Play video in the featured player
 function playVideo(videoId) {
     if (!featuredVideoPlayer) return;
 
-    // Find video data
     const video = videoData.find(v => v.id == videoId);
 
     if (!video) {
@@ -499,27 +445,22 @@ function playVideo(videoId) {
         return;
     }
 
-    // Update current video ID
     currentVideoId = video.id;
 
-    // Update video player
     featuredVideoPlayer.src = video.file_path;
     featuredVideoPlayer.poster = video.thumbnail_path || '/api/placeholder/800/450';
     featuredVideoPlayer.load();
 
-    // Try to autoplay (may be blocked by browser)
     featuredVideoPlayer.play().catch(e => {
         console.log('Autoplay prevented:', e);
     });
 
-    // Update UI with video details
     if (featuredVideoTitle) featuredVideoTitle.textContent = video.title || 'Untitled Video';
     if (featuredVideoInfo) featuredVideoInfo.textContent = `Uploaded: ${formatDate(video.created_at)}`;
     if (featuredVideoDuration) featuredVideoDuration.textContent = formatDuration(video.duration || 0);
     if (featuredVideoDate) featuredVideoDate.textContent = formatDate(video.created_at);
     if (featuredVideoMetadata) featuredVideoMetadata.classList.remove('d-none');
 
-    // Update active state in carousel
     document.querySelectorAll('.video-card').forEach(card => {
         if (card.dataset.videoId == videoId) {
             card.classList.add('active');
@@ -530,27 +471,23 @@ function playVideo(videoId) {
     });
 }
 
-// Scroll to make active video visible in the carousel
 function scrollToActiveVideo(videoCard) {
     if (!videoCarousel || !videoCard) return;
 
     const carouselRect = videoCarousel.getBoundingClientRect();
     const cardRect = videoCard.getBoundingClientRect();
 
-    // Check if the card is outside the visible area
     const isVisible =
         cardRect.left >= carouselRect.left &&
         cardRect.right <= carouselRect.right;
 
     if (!isVisible) {
-        // Calculate the position to center the card
         const scrollLeft =
             videoCarousel.scrollLeft +
             (cardRect.left - carouselRect.left) -
             (carouselRect.width / 2) +
             (cardRect.width / 2);
 
-        // Scroll to position
         videoCarousel.scrollTo({
             left: scrollLeft,
             behavior: 'smooth'
@@ -558,7 +495,6 @@ function scrollToActiveVideo(videoCard) {
     }
 }
 
-// Delete a video
 async function deleteVideo(videoId) {
     if (!confirm('Are you sure you want to delete this video? This action cannot be undone.')) {
         return;
@@ -573,7 +509,6 @@ async function deleteVideo(videoId) {
             throw new Error('Failed to delete video');
         }
 
-        // Reset current video if it was deleted
         if (currentVideoId === videoId) {
             currentVideoId = null;
             if (featuredVideoPlayer) featuredVideoPlayer.src = '';
@@ -582,7 +517,6 @@ async function deleteVideo(videoId) {
             if (featuredVideoMetadata) featuredVideoMetadata.classList.add('d-none');
         }
 
-        // Refresh videos
         loadVideos();
 
     } catch (error) {
@@ -591,13 +525,11 @@ async function deleteVideo(videoId) {
     }
 }
 
-// Update pagination controls
 function updatePagination(total) {
     if (!pagination) return;
 
     const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
 
-    // Don't show pagination if only one page
     if (totalPages <= 1) {
         pagination.innerHTML = '';
         return;
@@ -605,7 +537,6 @@ function updatePagination(total) {
 
     let paginationHTML = '';
 
-    // Previous button
     paginationHTML += `
         <li class="page-item ${currentPage === 0 ? 'disabled' : ''}">
             <a class="page-link" href="#" data-page="${currentPage - 1}" aria-label="Previous">
@@ -614,7 +545,6 @@ function updatePagination(total) {
         </li>
     `;
 
-    // Page numbers
     for (let i = 0; i < totalPages; i++) {
         // Show limited page numbers with ellipsis for large page counts
         if (
@@ -639,7 +569,6 @@ function updatePagination(total) {
         }
     }
 
-    // Next button
     paginationHTML += `
         <li class="page-item ${currentPage >= totalPages - 1 ? 'disabled' : ''}">
             <a class="page-link" href="#" data-page="${currentPage + 1}" aria-label="Next">
@@ -650,7 +579,6 @@ function updatePagination(total) {
 
     pagination.innerHTML = paginationHTML;
 
-    // Add event listeners to pagination links
     document.querySelectorAll('.page-link[data-page]').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
@@ -669,13 +597,11 @@ function updatePagination(total) {
     });
 }
 
-// Update total videos count display
 function updateTotalCount(total) {
     if (!totalVideosCount) return;
     totalVideosCount.textContent = `Showing ${Math.min(ITEMS_PER_PAGE, total)} of ${total} video${total !== 1 ? 's' : ''}`;
 }
 
-// Helper function to format date
 function formatDate(dateString) {
     if (!dateString) return 'N/A';
 
@@ -686,7 +612,6 @@ function formatDate(dateString) {
     });
 }
 
-// Helper function to format duration
 function formatDuration(seconds) {
     if (!seconds) return '00:00';
 
@@ -696,12 +621,10 @@ function formatDuration(seconds) {
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
 }
 
-// Listen for scroll events on carousel to update nav buttons
 window.addEventListener('load', function() {
     if (videoCarousel) {
         videoCarousel.addEventListener('scroll', updateNavButtonsState);
 
-        // Initial check for nav buttons state
         setTimeout(updateNavButtonsState, 500);
     }
 });

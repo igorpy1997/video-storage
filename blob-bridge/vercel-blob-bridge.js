@@ -49,7 +49,6 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const FASTAPI_URL = process.env.FASTAPI_URL || 'http://localhost:8000';
 
-// Check if token is present
 if (!process.env.BLOB_READ_WRITE_TOKEN) {
     log('WARNING: BLOB_READ_WRITE_TOKEN not set. Uploads will likely fail!');
 } else {
@@ -62,13 +61,11 @@ log(`FastAPI URL: ${FASTAPI_URL}`);
 app.use(cors());
 app.use(express.json());
 
-// Request logging
 app.use((req, res, next) => {
     log(`${req.method} ${req.url}`);
     next();
 });
 
-// Main endpoint for handling Vercel Blob uploads
 app.post('/api/blob-upload', async (req, res) => {
     log('Received blob upload request');
 
@@ -90,7 +87,7 @@ app.post('/api/blob-upload', async (req, res) => {
                         'video/quicktime',
                         'video/x-msvideo',
                         'video/x-flv',
-                        'video/*'  // Allows any video format
+                        'video/*'
                     ],
                     tokenPayload: JSON.stringify({
                         pathname,
@@ -102,7 +99,6 @@ app.post('/api/blob-upload', async (req, res) => {
                 try {
                     log(`Upload completed: ${blob.url}`);
 
-                    // Notify FastAPI about successful upload
                     log('Notifying FastAPI about upload');
                     await axios.post(`${FASTAPI_URL}/video-uploaded`, {
                         blobUrl: blob.url,
@@ -126,7 +122,6 @@ app.post('/api/blob-upload', async (req, res) => {
     }
 });
 
-// Simple health check endpoint
 app.get('/health', (req, res) => {
     log('Health check requested');
     res.json({
@@ -137,7 +132,6 @@ app.get('/health', (req, res) => {
     });
 });
 
-// Function to format file size in a human-readable format
 function formatFileSize(bytes) {
     if (bytes < 1024) return bytes + ' B';
     else if (bytes < 1048576) return (bytes / 1024).toFixed(2) + ' KB';
@@ -145,7 +139,6 @@ function formatFileSize(bytes) {
     else return (bytes / 1073741824).toFixed(2) + ' GB';
 }
 
-// Function to delete temporary file
 function cleanupTempFile(filePath) {
     if (filePath && fs.existsSync(filePath)) {
         try {
@@ -157,7 +150,6 @@ function cleanupTempFile(filePath) {
     }
 }
 
-// New endpoint for uploading via FormData
 app.post('/upload', upload.single('file'), async (req, res) => {
     try {
         log('Received FormData upload request');
@@ -177,15 +169,12 @@ app.post('/upload', upload.single('file'), async (req, res) => {
         log(`Generated unique filename: ${uniqueFilename}`);
 
         try {
-            // Upload file to Vercel Blob
             const { put } = await import('@vercel/blob');
 
-            // Create a read stream from the file
             const fileStream = fs.createReadStream(filePath);
 
             log(`Starting upload to Vercel Blob with multipart: true`);
 
-            // Always use multipart for file uploads
             const blob = await put(uniqueFilename, fileStream, {
                 access: 'public',
                 contentType: file.mimetype,
@@ -213,7 +202,6 @@ app.post('/upload', upload.single('file'), async (req, res) => {
                 // Continue even if we failed to notify FastAPI
             }
 
-            // Delete temporary file
             cleanupTempFile(filePath);
 
             return res.json({
@@ -225,7 +213,6 @@ app.post('/upload', upload.single('file'), async (req, res) => {
                 id: Date.now().toString() // Temporary ID
             });
         } catch (error) {
-            // Delete temporary file in case of error
             cleanupTempFile(filePath);
             throw error;
         }
@@ -236,18 +223,15 @@ app.post('/upload', upload.single('file'), async (req, res) => {
     }
 });
 
-// Start the server
 app.listen(PORT, () => {
     log(`Vercel Blob Bridge running on port ${PORT}`);
 });
 
-// Handle uncaught exceptions
 process.on('uncaughtException', (error) => {
     log(`Uncaught exception: ${error.message}`);
     log(error.stack);
 });
 
-// Handle unhandled promise rejections
 process.on('unhandledRejection', (reason, promise) => {
     log('Unhandled Rejection at:', promise, 'reason:', reason);
 });
